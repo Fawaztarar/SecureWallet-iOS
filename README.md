@@ -6,15 +6,17 @@ SecureWallet-iOS is a fintech-grade iOS project demonstrating a secure wallet an
 The project is designed to showcase production-quality engineering practices suitable for regulated financial systems. It intentionally mirrors how real-world fintech iOS platforms are structured, reviewed, and audited.
 
 ---
-
+ 
 ## 🎯 Project Goals
 
 - Demonstrate fintech-grade iOS architecture
-- Enforce correctness for money-like data
-- Apply strict Clean Architecture boundaries
-- Use MVVM-C for scalable navigation
+- Demonstrate fintech-grade iOS architecture
+- Enforce strict correctness for money-like data
+- Guarantee financial invariants via deterministic replay
+- Apply Clean Architecture with strict module boundaries
+- Use MVVM + Coordinator for scalable UI flows
 - Practice Test-Driven Development from day one
-- Design for auditability, testability, and long-term maintainability
+- Design for auditability, determinism, and long-term maintainability
 
 ---
 
@@ -44,41 +46,76 @@ These rules are enforced using separate framework targets.
 ## 🧠 Domain Layer (Single Source of Truth)
 
 The `SecureWalletDomain` module contains:
+The domain module contains all financial rules and invariants.
 
-- Entities (Wallet, Money, Ledger)
-- Value Objects (Currency, Amount)
-- Use Cases (business rules only)
-- Repository protocols
-- Explicit domain errors
+## Core Components
 
-Rules:
-- No SwiftUI
-- No UIKit
-- No Combine
-- No networking
-- No persistence
-- No Apple system APIs
+### CoinAmount
+- Immutable value object storing milliCoins  
+- Prevents negative values  
+- Safe arithmetic operations  
 
-The Domain module is fully testable in isolation.
+### LedgerEntry
+- Immutable entity  
+- Credit / Debit direction  
+- Timestamped  
+
+### Wallet (Aggregate Root)
+- Owns append-only ledger  
+- Balance is derived, never stored  
+- Enforces all financial invariants  
+
+### WalletRecord
+- Deterministic persistence representation  
+
+### WalletStore
+- Protocol boundary for persistence  
+
+## Financial Invariants Enforced
+
+- Balance is never stored directly  
+- Balance can never be negative  
+- Debit greater than balance throws  
+- Debit equal to balance succeeds  
+- Failed debit does not mutate state  
+- Ledger entries are append-only  
+- Duplicate entry IDs are ignored (idempotency)  
+- Wallet state is reconstructed via deterministic replay  
+
+The domain is fully unit tested and framework-agnostic.
 
 ---
 
-## 🔌 Data Layer (Infrastructure)
+# 💾 Data Layer (Infrastructure)
 
-The `SecureWalletData` module provides:
+`SecureWalletData`
 
-- Repository implementations
-- REST API client abstraction
-- Secure storage (Keychain)
-- Cryptography boundaries
+Provides concrete implementations of domain protocols.
 
-Rules:
-- Depends on Domain
-- Implements Domain protocols
-- Fully mockable
-- Replaceable per environment
+## Core Data Persistence
 
----
+- `CoreDataStack` abstraction  
+- `CoreDataWalletStore` conforming to `WalletStore`  
+- Strict ordering via `orderIndex`  
+- No balance persistence  
+- Replay-based rehydration  
+- Infrastructure errors wrapped as `WalletStoreError`  
+
+## Deterministic Save Strategy
+
+1. Convert `Wallet` → `WalletRecord`  
+2. Delete existing entries  
+3. Recreate entries in deterministic order  
+4. Save atomically  
+
+## Deterministic Load Strategy
+
+1. Fetch entries sorted by `orderIndex`  
+2. Map to domain entities  
+3. Rehydrate via `Wallet.fromRecord`  
+4. Wrap replay failures as persistence errors  
+
+This guarantees integrity and corruption detection.
 
 ## 🎨 App Layer (MVVM-C)
 
@@ -96,39 +133,71 @@ Rules:
 
 ---
 
-## 🧪 Testing Strategy (TDD)
+# 🧪 Testing Strategy (Strict TDD)
 
-- Tests are written before implementation
-- Domain logic is 100% unit tested
-- Infrastructure is tested with mocks
-- No Apple system APIs are used directly in tests
+Testing is treated as a design constraint.
 
-Test targets:
-- SecureWalletDomainTests
-- SecureWalletDataTests
-- SecureWalletTests
+## Domain Tests
+
+- 100% unit test coverage  
+- All financial invariants verified  
+- Edge cases validated (overdraft, idempotency, replay safety)  
+
+## Persistence Tests
+
+- Contract tests reused across implementations  
+- In-memory store tests  
+- Core Data integration tests  
+- Disk-backed durability test verifying persistence across stack reinitialization  
+
+All tests are deterministic, isolated, and reproducible.
+
+No Apple system APIs are used directly inside tests.
+
+---
+
+# 🎨 App Layer (MVVM + Coordinator)
+
+`SecureWalletApp`
+
+- SwiftUI views  
+- ViewModels without business logic  
+- Coordinators orchestrating side effects only  
+- Dependency injection container  
+
+UI reacts to state.  
+It does not enforce financial rules.
 
 ---
 
-## 🔐 Fintech Principles
+# 🔐 Fintech Engineering Principles
 
-- Correctness over convenience
-- Explicit error handling
-- No silent failures
-- Deterministic behavior
-- Money is treated as hostile input
+- Correctness over convenience  
+- Deterministic state reconstruction  
+- Explicit error propagation  
+- No silent failures  
+- Idempotent operations  
+- Infrastructure isolation  
+- Audit-friendly architecture  
+
+Money is treated as hostile input.
+
+---
+
+# 🚧 Project Status
+
+- ✅ Architecture and module boundaries established  
+- ✅ Fully validated wallet domain  
+- ✅ Deterministic Core Data persistence  
+- ✅ Integration and durability tests  
+- ⏳ In-memory Core Data stack for contract parity  
+- ⏳ Security abstraction (Keychain + encryption)  
+- ⏳ REST payout integration  
+- ⏳ Minimal UI integration  
 
 ---
 
-## 🚧 Project Status
-
-This project is intentionally developed in phases:
-
-- ✅ Architecture & module setup
-- ⏳ Domain modeling with TDD (in progress)
-- ⏳ Infrastructure implementation
-- ⏳ Minimal UI integration
-
----
+SecureWallet-iOS focuses on engineering rigor rather than feature breadth.  
+It is designed to demonstrate how financial systems should be built on iOS: deterministic, testable, and auditable.
 
 
