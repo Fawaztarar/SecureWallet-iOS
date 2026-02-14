@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		40AE83EE2F33C6E50047B53A /* SecureWalletDomain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 40AE83E32F33C6E50047B53A /* SecureWalletDomain.framework */; };
 		40AE840F2F33C7A10047B53A /* SecureWalletData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 40AE84042F33C7A10047B53A /* SecureWalletData.framework */; };
+		40DB5BD02F3D9BC3005DDF03 /* SecureWalletDomain.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 40AE83E32F33C6E50047B53A /* SecureWalletDomain.framework */; };
+		40DB5BD12F3D9BC3005DDF03 /* SecureWalletDomain.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 40AE83E32F33C6E50047B53A /* SecureWalletDomain.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,7 +42,28 @@
 			remoteGlobalIDString = 40AE84032F33C7A10047B53A;
 			remoteInfo = SecureWalletData;
 		};
+		40DB5BD22F3D9BC3005DDF03 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 40AE833F2F33BEF90047B53A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 40AE83E22F33C6E50047B53A;
+			remoteInfo = SecureWalletDomain;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		40DB5BD42F3D9BC3005DDF03 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				40DB5BD12F3D9BC3005DDF03 /* SecureWalletDomain.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		40AE83472F33BEF90047B53A /* SecureWallet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SecureWallet.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -131,6 +154,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				40DB5BD02F3D9BC3005DDF03 /* SecureWalletDomain.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -155,6 +179,7 @@
 				40AE83F12F33C6E50047B53A /* SecureWalletDomainTests */,
 				40AE84052F33C7A10047B53A /* SecureWalletData */,
 				40AE84122F33C7A10047B53A /* SecureWalletDataTests */,
+				40DB5BCF2F3D9BC3005DDF03 /* Frameworks */,
 				40AE83482F33BEF90047B53A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -171,6 +196,13 @@
 				40AE840E2F33C7A10047B53A /* SecureWalletDataTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		40DB5BCF2F3D9BC3005DDF03 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -315,10 +347,12 @@
 				40AE84002F33C7A10047B53A /* Sources */,
 				40AE84012F33C7A10047B53A /* Frameworks */,
 				40AE84022F33C7A10047B53A /* Resources */,
+				40DB5BD42F3D9BC3005DDF03 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				40DB5BD32F3D9BC3005DDF03 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				40AE84052F33C7A10047B53A /* SecureWalletData */,
@@ -537,6 +571,11 @@
 			isa = PBXTargetDependency;
 			target = 40AE84032F33C7A10047B53A /* SecureWalletData */;
 			targetProxy = 40AE84102F33C7A10047B53A /* PBXContainerItemProxy */;
+		};
+		40DB5BD32F3D9BC3005DDF03 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 40AE83E22F33C6E50047B53A /* SecureWalletDomain */;
+			targetProxy = 40DB5BD22F3D9BC3005DDF03 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

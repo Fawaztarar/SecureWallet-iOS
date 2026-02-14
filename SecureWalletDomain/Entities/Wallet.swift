@@ -29,20 +29,35 @@ import Foundation
 
 public struct Wallet: Equatable {
     
+    public let id: UUID
+    
     private var ledger: [LedgerEntry] = []
     
+    private var appliedEntryIds: Set<UUID> = []
     
-    public init() {}
+    
+    public init(id: UUID = UUID()) {
+         self.id = id
+     }
+
     
     public mutating func apply(_ entry: LedgerEntry) throws {
+        
+//        indempotency guard ignores duplicate entries
+        if appliedEntryIds.contains(entry.id) {
+            return
+        }
 
+        // Business rule: debits must not overdraft
         if entry.direction == .debit {
-            if entry.amount > balance {
+            guard (try? balance - entry.amount) != nil
+            else {
                 throw WalletError.insufficientFunds
             }
         }
 
         ledger.append(entry)
+        appliedEntryIds.insert(entry.id)
     }
 
     
@@ -60,5 +75,26 @@ public struct Wallet: Equatable {
 
         return total
     }
+    
+    public var entries: [LedgerEntry] {
+        ledger
+    }
+    
+    
+    public func toRecord() -> WalletRecord {
+        WalletRecord(walletID: id, entries: ledger)
+    }
+    
+    public static func fromRecord(_ record: WalletRecord) throws -> Wallet {
+        
+        var wallet = Wallet(id: record.walletID)
+        
+        for entries in record.entries {
+            try wallet.apply(entries)
+        }
+        
+        return wallet
+    }
+
 
 }

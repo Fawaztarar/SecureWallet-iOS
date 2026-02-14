@@ -30,10 +30,16 @@ public struct LedgerEntry: Equatable {
         public let amount: CoinAmount
     
         public let direction: Direction
+    
+        public let createdAt: Date
+    
+    public let id: UUID
         
-    public init(amount: CoinAmount, direction: Direction) {
+    public init(id:UUID = UUID(), amount: CoinAmount, direction: Direction, createdAt: Date) {
+        self.id = id
             self.amount = amount
-            self.direction = direction 
+            self.direction = direction
+        self.createdAt = createdAt
         
         }
     
