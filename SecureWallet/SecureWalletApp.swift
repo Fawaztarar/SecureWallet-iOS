@@ -9,9 +9,15 @@ import SwiftUI
 
 @main
 struct SecureWalletApp: App {
+    
+    
+    let container = AppContainer()
+    
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+//            ContentView()
+            WalletViewControllerWrapper(container: container)
         }
     }
 }

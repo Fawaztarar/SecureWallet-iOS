@@ -1,14 +1,14 @@
 //
-//  SecureWalletTests.swift
-//  SecureWalletTests
+//  SecureWalletSecurityTests.swift
+//  SecureWalletSecurityTests
 //
-//  Created by Fawaz Tarar on 04/02/2026.
+//  Created by Fawaz Tarar on 17/03/2026.
 //
 
 import XCTest
-@testable import SecureWallet
+@testable import SecureWalletSecurity
 
-final class SecureWalletTests: XCTestCase {
+final class SecureWalletSecurityTests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

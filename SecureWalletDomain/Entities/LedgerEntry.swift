@@ -22,8 +22,9 @@ import Foundation
 /// - LedgerEntry does not mutate state
 /// - LedgerEntry is append-only when used by a Wallet
 
-public struct LedgerEntry: Equatable {
-    public enum Direction: Equatable {
+public struct LedgerEntry: Equatable, Codable, Hashable, Sendable {
+    
+    public enum Direction: Codable, Sendable, Hashable {
         case credit
         case debit
     }

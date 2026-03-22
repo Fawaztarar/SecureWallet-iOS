@@ -9,13 +9,21 @@ import Foundation
 import XCTest
 @testable import SecureWalletDomain
 @testable import SecureWalletData
+@testable import SecureWalletSecurity
 
 final class CoreDataWalletStoreDiskIntegrationTests: XCTestCase {
 
     func test_save_persistsAcrossStackReinitialization() throws {
 
         let stack1 = CoreDataStack()
-        let store1 = CoreDataWalletStore(stack: stack1)
+     
+        
+        let encryption = BasicEncryptionService()
+
+        let store1 = CoreDataWalletStore(
+            stack: stack1,
+            encryptionService: encryption
+        )
 
         var wallet = Wallet()
 
@@ -30,8 +38,10 @@ final class CoreDataWalletStoreDiskIntegrationTests: XCTestCase {
 
         // 🔁 Simulate app restart
         let stack2 = CoreDataStack()
-        let store2 = CoreDataWalletStore(stack: stack2)
-
+        let store2 = CoreDataWalletStore(
+            stack: stack2,
+            encryptionService: encryption
+        )
         let loaded = try store2.load(walletID: wallet.id)
 
         XCTAssertEqual(loaded.balance, wallet.balance)

@@ -15,6 +15,7 @@ public struct WalletSnapShot {
     
     public init(wallet: Wallet) {
         self.balance = wallet.balance
+     
         self.entries = wallet.entries
             .sorted { $0.createdAt > $1.createdAt }
 

@@ -8,7 +8,7 @@
 import Foundation
 
 
-public struct CoinAmount: Equatable, Comparable {
+public struct CoinAmount: Equatable, Comparable, Codable, Hashable, Sendable {
     
     
     public let milliCoins: Int

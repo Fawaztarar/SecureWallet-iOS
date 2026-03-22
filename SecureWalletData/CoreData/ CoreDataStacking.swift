@@ -8,7 +8,7 @@
 import Foundation
 import CoreData
 
-protocol CoreDataStacking {
+public protocol CoreDataStacking {
     var context: NSManagedObjectContext { get }
     func save() throws
 }

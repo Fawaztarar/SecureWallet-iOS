@@ -98,4 +98,21 @@ final class LedgerEntryTest: XCTestCase {
     }
     
     
+    func test_wallet_apply_and_balance_doesNotCrash() throws {
+        var wallet = Wallet()
+        
+        let entry = try LedgerEntry(
+            amount: CoinAmount(milliCoins: 500),
+            direction: .credit,
+            createdAt: Date()
+        )
+        
+        try wallet.apply(entry)
+        
+        // 🔥 This is where your crash happens indirectly
+        let balance = wallet.balance
+        
+        XCTAssertEqual(balance.milliCoins, 500)
+    }
+    
 }

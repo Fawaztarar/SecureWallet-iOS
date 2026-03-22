@@ -6,10 +6,9 @@
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="milliCoins" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="orderIndex" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
-        <relationship name="wallet" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WalletEntity" inverseName="entries" inverseEntity="WalletEntity"/>
     </entity>
     <entity name="WalletEntity" representedClassName="WalletEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="encryptedPayload" attributeType="Binary"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <relationship name="entries" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="LedgerEntryEntity" inverseName="wallet" inverseEntity="LedgerEntryEntity"/>
     </entity>
 </model>

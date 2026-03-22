@@ -43,6 +43,9 @@ public struct Wallet: Equatable {
     
     public mutating func apply(_ entry: LedgerEntry) throws {
         
+        print("🏦 Wallet: applying", entry.direction, entry.amount.milliCoins)
+
+        
 //        indempotency guard ignores duplicate entries
         if appliedEntryIds.contains(entry.id) {
             return
@@ -79,6 +82,10 @@ public struct Wallet: Equatable {
     public var entries: [LedgerEntry] {
         ledger
     }
+    
+//    public var entries: [LedgerEntry] {
+//        Array(ledger)
+//    }
     
     
     public func toRecord() -> WalletRecord {

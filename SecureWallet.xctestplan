@@ -1,0 +1,21 @@
+{
+  "configurations" : [
+    {
+      "id" : "EAD053A3-61FE-44B3-ABDE-04924CD1BA9C",
+      "name" : "Configuration 1",
+      "options" : {
+        "addressSanitizer" : {
+          "enabled" : true
+        },
+        "nsZombieEnabled" : true
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+
+  ],
+  "version" : 1
+}

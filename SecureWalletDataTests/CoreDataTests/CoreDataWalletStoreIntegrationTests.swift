@@ -9,14 +9,21 @@ import Foundation
 import XCTest
 @testable import SecureWalletDomain
 @testable import SecureWalletData
+@testable import SecureWalletSecurity
+
 import CoreData
 
 final class CoreDataWalletStoreIntegrationTests: XCTestCase {
 
-    func test_save_persistsWalletAndEntries_withCorrectMapping() throws {
+    func test_save_persistsEncryptedWalletPayload() throws {
 
         let stack = InMemoryCoreDataStack()
-        let store = CoreDataWalletStore(stack: stack)
+        let encryption = BasicEncryptionService()
+
+        let store = CoreDataWalletStore(
+            stack: stack,
+            encryptionService: encryption
+        )
 
         var wallet = Wallet()
 
@@ -41,33 +48,69 @@ final class CoreDataWalletStoreIntegrationTests: XCTestCase {
 
         let context = stack.context
 
-        let walletFetch: NSFetchRequest<WalletEntity> = WalletEntity.fetchRequest()
-        let wallets = try context.fetch(walletFetch)
+        let request: NSFetchRequest<WalletEntity> = WalletEntity.fetchRequest()
+        let wallets = try context.fetch(request)
 
         XCTAssertEqual(wallets.count, 1)
 
-        guard let walletEntity = wallets.first else {
+        guard let entity = wallets.first else {
             XCTFail("WalletEntity not found")
             return
         }
 
-        XCTAssertEqual(walletEntity.id, wallet.id)
+        XCTAssertEqual(entity.id, wallet.id)
 
-        let entryFetch: NSFetchRequest<LedgerEntryEntity> = LedgerEntryEntity.fetchRequest()
-        entryFetch.sortDescriptors = [
-            NSSortDescriptor(key: "orderIndex", ascending: true)
-        ]
+        // ✅ New assertion: encrypted payload exists
+        guard let payload = entity.encryptedPayload else {
+            XCTFail("Encrypted payload missing")
+            return
+        }
 
-        let entries = try context.fetch(entryFetch)
-
-        XCTAssertEqual(entries.count, 2)
-
-        XCTAssertEqual(entries[0].milliCoins, 100)
-        XCTAssertEqual(entries[0].direction, "credit")
-        XCTAssertEqual(entries[0].orderIndex, 0)
-
-        XCTAssertEqual(entries[1].milliCoins, 40)
-        XCTAssertEqual(entries[1].direction, "debit")
-        XCTAssertEqual(entries[1].orderIndex, 1)
+        XCTAssertFalse(payload.isEmpty)
     }
+    
+    
+    func test_tamperedEncryptedPayload_throwsError() throws {
+
+        let stack = InMemoryCoreDataStack()
+        let encryption = BasicEncryptionService()
+
+        let store = CoreDataWalletStore(
+            stack: stack,
+            encryptionService: encryption
+        )
+
+        var wallet = Wallet()
+
+        let entry = try LedgerEntry(
+            amount: CoinAmount(milliCoins: 100),
+            direction: .credit,
+            createdAt: Date()
+        )
+
+        try wallet.apply(entry)
+        try store.save(wallet)
+
+        // 🔥 Tamper with stored data
+        let context = stack.context
+
+        let request: NSFetchRequest<WalletEntity> = WalletEntity.fetchRequest()
+        let wallets = try context.fetch(request)
+
+        guard let entity = wallets.first else {
+            XCTFail("Missing wallet")
+            return
+        }
+
+        entity.encryptedPayload = Data("corrupted-data".utf8)
+
+        try stack.save()
+
+        // 🚨 Must throw
+        XCTAssertThrowsError(
+            try store.load(walletID: wallet.id)
+        )
+    }
+    
 }
+

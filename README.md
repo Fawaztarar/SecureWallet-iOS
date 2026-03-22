@@ -1,47 +1,64 @@
 # SecureWallet-iOS
 
 
-SecureWallet-iOS is a fintech-grade iOS project demonstrating a secure wallet and payout pipeline built with Clean Architecture, MVVM-C, and strict Test-Driven Development (TDD).
+SecureWallet-iOS is a fintech-grade iOS project demonstrating a secure wallet and payout pipeline built with Clean Architecture, MVVM, UIKit and strict Test-Driven Development (TDD).
 
-The project is designed to showcase production-quality engineering practices suitable for regulated financial systems. It intentionally mirrors how real-world fintech iOS platforms are structured, reviewed, and audited.
 
----
- 
-## 🎯 Project Goals
 
-- Demonstrate fintech-grade iOS architecture
-- Demonstrate fintech-grade iOS architecture
-- Enforce strict correctness for money-like data
-- Guarantee financial invariants via deterministic replay
-- Apply Clean Architecture with strict module boundaries
-- Use MVVM + Coordinator for scalable UI flows
-- Practice Test-Driven Development from day one
-- Design for auditability, determinism, and long-term maintainability
 
 ---
+
+## 💥 What This Project Demonstrates
+
+- Designing financial systems where **correctness is prioritised **
+- Implementing **encryption-at-rest with proper key management**
+- Building **deterministic, replay-based state systems**
+- Applying **modern UIKit architecture (diffable + compositional layout)**
+- Writing **testable, auditable, production-grade iOS code**
+
+
 
 ## 🏗 Architecture Overview
 
 The project is divided into three primary modules:
 
 ```text
-SecureWalletApp     → iOS Application (MVVM-C)
+SecureWalletApp     → iOS Application 
 SecureWalletDomain  → Pure business logic (no frameworks)
 SecureWalletData    → Infrastructure & implementations
 ```
 
+## 🔄 Wallet Execution Flow (State → Persistence → UI)
 
-### Dependency Rules
+```text
+User Action (Add / Spend)
+   ↓
+ViewController
+   ↓
+ViewModel (state orchestration)
+   ↓
+WalletService (use case boundary)
+   ↓
+Wallet (domain logic, validation)
+   ↓
+WalletStore (persistence boundary)
+   ↓
+Core Data (encrypted payload)
+   ↓
+Wallet reconstructed via replay
+   ↓
+@Published state updated
+   ↓
+Diffable snapshot applied
+   ↓
+UI reflects new state
+```
 
-- App → Domain ✅
-- App → Data ✅
-- Data → Domain ✅
-- Domain → App ❌
-- Domain → Data ❌
 
-These rules are enforced using separate framework targets.
 
 ---
+
+
 
 ## 🧠 Domain Layer (Single Source of Truth)
 
@@ -86,114 +103,162 @@ The domain is fully unit tested and framework-agnostic.
 
 ---
 
-# 💾 Data Layer (Infrastructure)
 
-`SecureWalletData`
-
-Provides concrete implementations of domain protocols.
-
-## Core Data Persistence
-
-- `CoreDataStack` abstraction  
-- `CoreDataWalletStore` conforming to `WalletStore`  
-- Strict ordering via `orderIndex`  
-- No balance persistence  
-- Replay-based rehydration  
-- Infrastructure errors wrapped as `WalletStoreError`  
-
-## Deterministic Save Strategy
-
-1. Convert `Wallet` → `WalletRecord`  
-2. Delete existing entries  
-3. Recreate entries in deterministic order  
-4. Save atomically  
-
-## Deterministic Load Strategy
-
-1. Fetch entries sorted by `orderIndex`  
-2. Map to domain entities  
-3. Rehydrate via `Wallet.fromRecord`  
-4. Wrap replay failures as persistence errors  
-
-This guarantees integrity and corruption detection.
-
-## 🎨 App Layer (MVVM-C)
-
-The `SecureWallet` app target contains:
-
-- SwiftUI Views
-- ViewModels (`@Observable`)
-- Coordinators for navigation and side effects
-- Dependency container
-
-Rules:
-- ViewModels contain no business logic
-- Coordinators orchestrate flows only
-- UI reacts to state, never decides financial rules
 
 ---
 
-# 🧪 Testing Strategy (Strict TDD)
+## 📱 iOS Engineering Highlights (UIKit)
 
-Testing is treated as a design constraint.
+This project intentionally uses **UIKit** to demonstrate production-level iOS engineering skills.
 
-## Domain Tests
+### 🧩 Modern Collection View Architecture
 
-- 100% unit test coverage  
-- All financial invariants verified  
-- Edge cases validated (overdraft, idempotency, replay safety)  
+- `UICollectionViewCompositionalLayout`
+  - Section-based layout (balance + transaction feed)
+  - Dynamic sizing using `.estimated`
+  - Clean separation via `WalletLayoutFactory`
 
-## Persistence Tests
+- `UICollectionViewDiffableDataSource`
+  - Snapshot-driven UI updates
+  - Eliminates manual index management
+  - Ensures UI consistency with state
 
-- Contract tests reused across implementations  
-- In-memory store tests  
-- Core Data integration tests  
-- Disk-backed durability test verifying persistence across stack reinitialization  
-
-All tests are deterministic, isolated, and reproducible.
-
-No Apple system APIs are used directly inside tests.
-
----
-
-# 🎨 App Layer (MVVM + Coordinator)
-
-`SecureWalletApp`
-
-- SwiftUI views  
-- ViewModels without business logic  
-- Coordinators orchestrating side effects only  
-- Dependency injection container  
-
-UI reacts to state.  
-It does not enforce financial rules.
+- Supplementary Views (Headers)
+  - Date-grouped transaction sections
+  - Configured via `supplementaryViewProvider`
 
 ---
 
-# 🔐 Fintech Engineering Principles
+### 🔄 State-Driven UI (Combine)
 
-- Correctness over convenience  
-- Deterministic state reconstruction  
-- Explicit error propagation  
-- No silent failures  
-- Idempotent operations  
-- Infrastructure isolation  
-- Audit-friendly architecture  
+- ViewModel exposes state via:
+  - `@Published balance`
+  - `@Published transactions`
 
-Money is treated as hostile input.
+- UI binding:
+```swift
+Publishers.CombineLatest(viewModel.$balance, viewModel.$transactions)
+```
 
 ---
 
-# 🚧 Project Status
+## 📱 App Layer (MVVM)
 
-- ✅ Architecture and module boundaries established  
-- ✅ Fully validated wallet domain  
-- ✅ Deterministic Core Data persistence  
-- ✅ Integration and durability tests  
-- ⏳ In-memory Core Data stack for contract parity  
-- ⏳ Security abstraction (Keychain + encryption)  
-- ⏳ REST payout integration  
-- ⏳ Minimal UI integration  
+The App layer is responsible for rendering state and handling user interaction.
+
+- ViewModels:
+  - Expose state via `@Published`
+  - Contain no business logic
+  - Orchestrate use cases via services
+
+- ViewControllers:
+  - Bind to ViewModel using Combine
+  - Apply diffable snapshots
+  - Handle UI composition only
+
+> UI is fully state-driven. No business rules exist outside the domain.
+
+
+---
+
+---
+
+## 💾 Persistence Layer (Core Data + Encrypted Ledger)
+
+The project uses **Core Data as a secure persistence engine**, storing wallet state as an **encrypted payload** rather than plain relational data.
+
+### 🧠 Design Principle
+
+> Persistence stores encrypted history. Domain reconstructs truth.
+
+- Wallet is **not stored directly**
+- Full state is serialized into a `WalletRecord`
+- Stored as a **single encrypted blob**
+- Domain rebuilds wallet via deterministic replay
+
+---
+
+### 🧱 Storage Model
+
+Core Data entity:
+
+- `WalletEntity`
+  - `id: UUID`
+  - `encryptedPayload: Data`
+
+---
+
+### 🔐 Save Flow (Secure & Atomic)
+
+1. Convert `Wallet → WalletRecord`
+2. Encode using `JSONEncoder`
+3. Encrypt using AES-GCM
+4. Store encrypted payload in Core Data
+
+```text
+Wallet (Domain)
+   ↓
+WalletRecord
+   ↓
+JSON Encode
+   ↓
+AES-GCM Encrypt 🔐
+   ↓
+Core Data (encryptedPayload)
+```
+
+
+---
+
+## 🔐 Security & Cryptography
+
+The project implements encryption-at-rest using Apple’s CryptoKit.
+
+### Key Characteristics
+
+- Wallet data is never stored in plaintext
+- Encryption is enforced at the persistence boundary
+- AES-256-GCM is used for authenticated encryption
+- Keys are generated and stored securely using Keychain
+- Decryption failures are treated as data corruption
+
+### Flow
+
+```text
+Wallet → JSON → AES-GCM Encrypt → Core Data
+Core Data → AES-GCM Decrypt → WalletRecord → Domain
+
+```
+
+---
+
+
+
+
+---
+
+## 🧪 Testing Strategy (TDD)
+
+- Tests are written before implementation
+- Domain logic is 100% unit tested
+- Infrastructure is tested with mocks
+- No Apple system APIs are used directly in tests
+
+Test targets:
+- SecureWalletDomainTests
+- SecureWalletDataTests
+- SecureWalletTests
+
+---
+
+
+
+## 📸 Wallet UI (UIKit, Compositional Layout, Diffable Data Source)
+
+<p align="center">
+  <img src="docs/images/secureWallet.png" width="300"/>
+</p>
+
 
 ---
 

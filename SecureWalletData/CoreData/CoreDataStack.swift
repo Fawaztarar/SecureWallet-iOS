@@ -8,51 +8,50 @@
 import Foundation
 import CoreData
 
-/// Responsibility:
-/// - Owns and configures the NSPersistentContainer
-/// - Loads the Core Data model
-/// - Exposes a single working NSManagedObjectContext
-/// - Provides controlled save() access
-///
-final class CoreDataStack: CoreDataStacking {
-    
-    private let container: NSPersistentContainer
-//    private let container: NSPersistentCloudKitContainer
+public final class CoreDataStack: CoreDataStacking {
 
-    
-    init(modelName: String = "SecureWallet") {
-
+     static let sharedModel: NSManagedObjectModel = {
         let bundle = Bundle(for: CoreDataStack.self)
 
         guard
-            let modelURL = bundle.url(forResource: modelName, withExtension: "momd"),
+            let modelURL = bundle.url(forResource: "SecureWallet", withExtension: "momd"),
             let model = NSManagedObjectModel(contentsOf: modelURL)
         else {
-            fatalError("Failed to load Core Data model: \(modelName)")
+            fatalError("Failed to load Core Data model")
         }
+
+        return model
+    }()
+
+    private let container: NSPersistentContainer
+
+    public init(modelName: String = "SecureWallet", inMemory: Bool = false) {
 
         container = NSPersistentContainer(
             name: modelName,
-            managedObjectModel: model
+            managedObjectModel: Self.sharedModel
         )
+
+        if inMemory {
+            let description = NSPersistentStoreDescription()
+            description.type = NSInMemoryStoreType
+            container.persistentStoreDescriptions = [description]
+        }
 
         container.loadPersistentStores { storeDescription, error in
             if let error = error {
                 fatalError("Failed to load Core Data stack: \(error)")
             }
-            print("SQLite file URL:", storeDescription.url?.absoluteString ?? "nil")
         }
     }
-    
-    var context: NSManagedObjectContext {
+
+    public var context: NSManagedObjectContext {
         container.viewContext
     }
-    
-    func save() throws {
+
+    public func save() throws {
         if context.hasChanges {
             try context.save()
         }
     }
-
-
 }
